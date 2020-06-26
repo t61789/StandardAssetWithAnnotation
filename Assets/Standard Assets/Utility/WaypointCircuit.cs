@@ -10,6 +10,8 @@ namespace UnityStandardAssets.Utility
 {
     public class WaypointCircuit : MonoBehaviour
     {
+        // 管理路径点的类，主要功能是根据路径值获取在闭合路径上的路径点
+
         public WaypointList waypointList = new WaypointList();
         [SerializeField] private bool smoothRoute = true;
         private int numPoints;
@@ -41,6 +43,7 @@ namespace UnityStandardAssets.Utility
         {
             if (Waypoints.Length > 1)
             {
+                // 缓存路径点和路程
                 CachePositionsAndDistances();
             }
             numPoints = Waypoints.Length;
@@ -49,6 +52,7 @@ namespace UnityStandardAssets.Utility
 
         public RoutePoint GetRoutePoint(float dist)
         {
+            // 计算插值后的路径点和他的方向
             // position and direction
             Vector3 p1 = GetRoutePosition(dist);
             Vector3 p2 = GetRoutePosition(dist + 0.1f);
@@ -61,37 +65,42 @@ namespace UnityStandardAssets.Utility
         {
             int point = 0;
 
+            // 获取一周的长度
             if (Length == 0)
             {
                 Length = distances[distances.Length - 1];
             }
 
+            // 把dist规定在[0,Length]内
             dist = Mathf.Repeat(dist, Length);
 
+            // 从起点数起，寻找dist所在的路段
             while (distances[point] < dist)
             {
                 ++point;
             }
 
-
+            // 获得距离dist最近的两个路径点
             // get nearest two points, ensuring points wrap-around start & end of circuit
             p1n = ((point - 1) + numPoints)%numPoints;
             p2n = point;
 
+            // 获得两点距离间的百分值
             // found point numbers, now find interpolation value between the two middle points
-
             i = Mathf.InverseLerp(distances[p1n], distances[p2n], dist);
 
             if (smoothRoute)
             {
+                // 使用平滑catmull-rom曲线
                 // smooth catmull-rom calculation between the two relevant points
 
-
+                // 再获得最近的两个点，一共四个，用于计算catmull-rom曲线
                 // get indices for the surrounding 2 points, because
                 // four points are required by the catmull-rom function
                 p0n = ((point - 2) + numPoints)%numPoints;
                 p3n = (point + 1)%numPoints;
 
+                // 这里没太懂，似乎是只有三个路径点时，计算出的两个新路径点会重合
                 // 2nd point may have been the 'last' point - a dupe of the first,
                 // (to give a value of max track distance instead of zero)
                 // but now it must be wrapped back to zero if that was the case.
@@ -102,6 +111,8 @@ namespace UnityStandardAssets.Utility
                 P2 = points[p2n];
                 P3 = points[p3n];
 
+                // 计算catmull-rom曲线
+                // 为什么这里的i值时1、2号点的百分值？为什么不是0、3号点的？
                 return CatmullRom(P0, P1, P2, P3, i);
             }
             else
@@ -118,9 +129,11 @@ namespace UnityStandardAssets.Utility
 
         private Vector3 CatmullRom(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float i)
         {
+            // 魔幻代码，计算catmull-rom曲线
+            // （其实google一下就有公式了）
             // comments are no use here... it's the catmull-rom equation.
             // Un-magic this, lord vector!
-            return 0.5f*
+            return 0.5f *
                    ((2*p1) + (-p0 + p2)*i + (2*p0 - 5*p1 + 4*p2 - p3)*i*i +
                     (-p0 + 3*p1 - 3*p2 + p3)*i*i*i);
         }
@@ -128,6 +141,8 @@ namespace UnityStandardAssets.Utility
 
         private void CachePositionsAndDistances()
         {
+            // 把每个点的坐标和到达某点的总距离转换成数组
+            // 距离数组中的值表示从起点到达第n个路径点走过的路程，最后一个为起点，路程为一周的路程而不是0
             // transfer the position of each point and distances between points to arrays for
             // speed of lookup at runtime
             points = new Vector3[Waypoints.Length + 1];
@@ -204,6 +219,7 @@ namespace UnityStandardAssets.Utility
             public Transform[] items = new Transform[0];
         }
 
+        // 路径点结构体
         public struct RoutePoint
         {
             public Vector3 position;
@@ -219,8 +235,10 @@ namespace UnityStandardAssets.Utility
     }
 }
 
+
 namespace UnityStandardAssets.Utility.Inspector
 {
+    // 路径点集合的编辑器，不太想分析，老是报越界的Error，还是用最近的这个UIElement好一点吧
 #if UNITY_EDITOR
     [CustomPropertyDrawer(typeof (WaypointCircuit.WaypointList))]
     public class WaypointListDrawer : PropertyDrawer
