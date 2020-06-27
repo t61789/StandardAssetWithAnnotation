@@ -209,12 +209,15 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 
 		public void OnAnimatorMove()
 		{
+			// 我们实现这个方法来重写默认根动画的运动
+			// 这允许我们在速度被应用前修改它
 			// we implement this function to override the default root motion.
 			// this allows us to modify the positional speed before it's applied.
 			if (m_IsGrounded && Time.deltaTime > 0)
 			{
 				Vector3 v = (m_Animator.deltaPosition * m_MoveSpeedMultiplier) / Time.deltaTime;
 
+				// 保存当前的y轴速度
 				// we preserve the existing y part of the current velocity.
 				v.y = m_Rigidbody.velocity.y;
 				m_Rigidbody.velocity = v;
