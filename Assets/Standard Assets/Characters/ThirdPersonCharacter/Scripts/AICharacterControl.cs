@@ -18,7 +18,9 @@ namespace UnityStandardAssets.Characters.ThirdPerson
             agent = GetComponentInChildren<UnityEngine.AI.NavMeshAgent>();
             character = GetComponent<ThirdPersonCharacter>();
 
+            // agent不可旋转，交由动画来控制
 	        agent.updateRotation = false;
+            // 需要更新坐标，好像动画状态机不能很好地人物的坐标，需要agent来辅助
 	        agent.updatePosition = true;
         }
 
@@ -28,6 +30,7 @@ namespace UnityStandardAssets.Characters.ThirdPerson
             if (target != null)
                 agent.SetDestination(target.position);
 
+            // desiredVelocity相当于前进方向，用于更新人物状态
             if (agent.remainingDistance > agent.stoppingDistance)
                 character.Move(agent.desiredVelocity, false, false);
             else

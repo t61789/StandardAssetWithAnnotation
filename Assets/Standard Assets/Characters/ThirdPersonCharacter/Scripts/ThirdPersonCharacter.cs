@@ -72,7 +72,7 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 			}
 
 			ScaleCapsuleForCrouching(crouch);	// 蹲伏处理
-			PreventStandingInLowHeadroom();	// 避免在狭小空间站立
+			PreventStandingInLowHeadroom();	// 在狭小的空间内自动蹲下
 
 			// send input and other state parameters to the animator
 			UpdateAnimator(move);
@@ -95,7 +95,7 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 			}
 			else
 			{
-				// 在狭小空间内只能蹲伏，否则恢复
+				// 站起来，在狭小的空间内则不能站立
 
 				Ray crouchRay = new Ray(m_Rigidbody.position + Vector3.up * m_Capsule.radius * k_Half, Vector3.up);
 				float crouchRayLength = m_CapsuleHeight - m_Capsule.radius * k_Half;
@@ -113,6 +113,7 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 		void PreventStandingInLowHeadroom()
 		{
 			// 阻止在仅允许蹲伏的区域内站立
+			// 也就是进入狭小的空间，而人物没有蹲伏则自动蹲下
 			// prevent standing up in crouch-only zones
 			if (!m_Crouching)
 			{
@@ -145,6 +146,8 @@ namespace UnityStandardAssets.Characters.ThirdPerson
             // calculate which leg is behind, so as to leave that leg trailing in the jump animation
 			// (This code is reliant on the specific run cycle offset in our animations,
 			// and assumes one leg passes the other at the normalized clip times of 0.0 and 0.5)
+
+			// 其实就是根据动画判断哪条腿在后面，由于动画是镜像的，[0,0.5]内是一条腿，[0.5,1]是另一条腿
 			float runCycle =
 				Mathf.Repeat(
 					m_Animator.GetCurrentAnimatorStateInfo(0).normalizedTime + m_RunCycleLegOffset, 1);
